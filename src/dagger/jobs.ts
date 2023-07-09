@@ -10,6 +10,7 @@ export const install = async (client: Client, src = ".") => {
     .withDirectory("/app", context, {
       exclude: [".git"],
     })
+    .withWorkdir("/app")
     .withExec(["apt", "-y", "update"])
     .withExec(["apt", "-y", "install", "apt-utils"])
     .withExec([
@@ -40,6 +41,7 @@ export const migrations = async (client: Client, src = ".") => {
     .withDirectory("/app", context, {
       exclude: [".git"],
     })
+    .withWorkdir("/app")
     .withExec(["python3", "manage.py", "makemigrations"])
     .withExec(["python3", "manage.py", "migrate"])
     .withExec(["python3", "manage.py", "check"]);
@@ -59,6 +61,7 @@ export const djangoTests = async (client: Client, src = ".") => {
     .withDirectory("/app", context, {
       exclude: [".git"],
     })
+    .withWorkdir("/app")
     .withEnvVariable("MYSQL_USER", "root")
     .withEnvVariable("MYSQL_ROOT_PASSWORD", "root")
     .withExec([
