@@ -1,4 +1,4 @@
-import { Job } from "https://deno.land/x/fluent_gitlab_ci@v0.3.2/mod.ts";
+import { Job } from "fluent_gitlab_ci";
 
 export const install = new Job()
   .image("ubuntu:20.04")
