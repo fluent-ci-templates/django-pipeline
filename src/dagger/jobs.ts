@@ -1,76 +1,46 @@
 import Client from "@dagger.io/dagger";
-
-export const install = async (client: Client, src = ".") => {
-  const context = client.host().directory(src);
-  const ctr = client
-    .pipeline("install")
-    .container()
-    .from("ubuntu:20.04")
-    .withMountedCache("~/.cache/pip/", client.cacheVolume("pip"))
-    .withDirectory("/app", context, {
-      exclude: [".git"],
-    })
-    .withWorkdir("/app")
-    .withExec(["apt", "-y", "update"])
-    .withExec(["apt", "-y", "install", "apt-utils"])
-    .withExec([
-      "apt",
-      "-y",
-      "install",
-      "net-tools",
-      "python3.8",
-      "python3-pip",
-      "mysql-client",
-      "libmysqlclient-dev",
-    ])
-    .withExec(["apt", "-y", "upgrade"])
-    .withExec(["pip3", "install", "-r", "requirements.txt"]);
-
-  const result = await ctr.stdout();
-
-  console.log(result);
-};
-
-export const migrations = async (client: Client, src = ".") => {
-  const context = client.host().directory(src);
-  const ctr = client
-    .pipeline("migrations")
-    .container()
-    .from("ubuntu:20.04")
-    .withMountedCache("~/.cache/pip/", client.cacheVolume("pip"))
-    .withDirectory("/app", context, {
-      exclude: [".git"],
-    })
-    .withWorkdir("/app")
-    .withExec(["python3", "manage.py", "makemigrations"])
-    .withExec(["python3", "manage.py", "migrate"])
-    .withExec(["python3", "manage.py", "check"]);
-
-  const result = await ctr.stdout();
-
-  console.log(result);
-};
+import { withDevbox } from "https://deno.land/x/nix_installer_pipeline@v0.3.3/src/dagger/steps.ts";
 
 export const djangoTests = async (client: Client, src = ".") => {
   const context = client.host().directory(src);
-  const ctr = client
-    .pipeline("django-tests")
-    .container()
-    .from("ubuntu:20.04")
-    .withMountedCache("~/.cache/pip/", client.cacheVolume("pip"))
+  const baseCtr = withDevbox(
+    client
+      .pipeline("django-tests")
+      .container()
+      .from("alpine:latest")
+      .withExec(["apk", "update"])
+      .withExec(["apk", "add", "bash", "curl"])
+  );
+
+  const ctr = baseCtr
+    .withMountedCache("/nix", client.cacheVolume("nix"))
     .withDirectory("/app", context, {
-      exclude: [".git"],
+      exclude: [".git", ".devbox"],
     })
     .withWorkdir("/app")
-    .withEnvVariable("MYSQL_USER", "root")
-    .withEnvVariable("MYSQL_ROOT_PASSWORD", "root")
     .withExec([
       "sh",
       "-c",
-      'echo "GRANT ALL on *.* to \'${MYSQL_USER}\';"| mysql -u root --password="${MYSQL_ROOT_PASSWORD}" -h mysql',
+      "mkdir -p .devbox && eval $(devbox shell --print-env) && \
+       devbox services up -b && \
+       devbox services stop && \
+       sed -i 's/mysqld 2/mysqld --user=root 2/' .devbox/virtenv/mysql80/process-compose.yaml",
     ])
-    .withExec(["python3", "manage.py", "test"]);
-
+    .withExec([
+      "sh",
+      "-c",
+      "devbox services up -b && \
+       sleep 3 && \
+       eval $(devbox shell --print-env) && \
+       echo 'CREATE DATABASE IF NOT EXISTS todo_db;' | mysql -u root && \
+       cd todo_project && \
+       . $VENV_DIR/bin/activate && \
+       python3 manage.py makemigrations && \
+       python3 manage.py migrate && \
+       python3 manage.py check && \
+       python3 manage.py test && \
+       devbox services stop",
+    ]);
   const result = await ctr.stdout();
 
   console.log(result);
