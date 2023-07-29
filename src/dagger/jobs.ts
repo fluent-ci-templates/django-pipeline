@@ -16,7 +16,7 @@ export const djangoTests = async (client: Client, src = ".") => {
 
   const ctr = baseCtr
     .withDirectory("/app", context, {
-      exclude: [".git", ".devbox"],
+      exclude: [".git", ".devbox", ".fluentci"],
     })
     .withWorkdir("/app")
     .withExec([
