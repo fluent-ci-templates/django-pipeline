@@ -4,7 +4,7 @@
 ![deno compatibility](https://shield.deno.dev/deno/^1.34)
 [![](https://img.shields.io/codecov/c/gh/fluent-ci-templates/django-pipeline)](https://codecov.io/gh/fluent-ci-templates/django-pipeline)
 
-A ready-to-use GitLab CI Pipeline and Jobs for your Django projects.
+A ready-to-use CI/CD Pipeline for your Django projects.
 
 ## 🚀 Usage
 
