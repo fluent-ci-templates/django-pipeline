@@ -44,9 +44,11 @@ import { Dagger } from "https://deno.land/x/django_pipeline/mod.ts";
 
 const { djangoTests } = Dagger;
 
-export default function pipeline(src = ".") {
+function pipeline(src = ".") {
   connect(async (client: Client) => {
     await djangoTests(client, src);
   });
 }
+
+pipeline();
 ```
