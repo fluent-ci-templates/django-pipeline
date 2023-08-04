@@ -2,6 +2,22 @@ import Client from "@dagger.io/dagger";
 import { withDevbox } from "https://deno.land/x/nix_installer_pipeline@v0.3.6/src/dagger/steps.ts";
 
 export const djangoTests = async (client: Client, src = ".") => {
+  // get MariaDB base image
+  const mariadb = client
+    .container()
+    .from("mariadb:10.11.2")
+    .withEnvVariable("MARIADB_USER", Deno.env.get("MARIADB_USER") || "user")
+    .withEnvVariable(
+      "MARIADB_PASSWORD",
+      Deno.env.get("MARIADB_PASSWORD") || "password"
+    )
+    .withEnvVariable("MARIADB_DATABASE", "test_db")
+    .withEnvVariable(
+      "MARIADB_ROOT_PASSWORD",
+      Deno.env.get("MARIADB_ROOT_PASSWORD") || "root"
+    )
+    .withExposedPort(3306);
+
   const context = client.host().directory(src);
   const baseCtr = withDevbox(
     client
@@ -19,28 +35,30 @@ export const djangoTests = async (client: Client, src = ".") => {
       exclude: [".git", ".devbox", ".fluentci"],
     })
     .withWorkdir("/app")
+    .withServiceBinding("db", mariadb)
+    .withEnvVariable("MARIADB_USER", Deno.env.get("MARIADB_USER") || "user")
+    .withEnvVariable(
+      "MARIADB_PASSWORD",
+      Deno.env.get("MARIADB_PASSWORD") || "password"
+    )
+    .withEnvVariable("MARIADB_DATABASE", "test_db")
+    .withEnvVariable(
+      "MARIADB_ROOT_PASSWORD",
+      Deno.env.get("MARIADB_ROOT_PASSWORD") || "root"
+    )
+    .withEnvVariable("MARIADB_HOST", Deno.env.get("MARIADB_HOST") || "db")
     .withExec([
       "sh",
       "-c",
-      "mkdir -p .devbox && eval $(devbox shell --print-env) && \
-       devbox services up -b && \
-       devbox services stop && \
-       sed -i 's/mysqld 2/mysqld --user=root 2/' .devbox/virtenv/mysql80/process-compose.yaml",
-    ])
-    .withExec([
-      "sh",
-      "-c",
-      "devbox services up -b && \
-       sleep 3 && \
-       eval $(devbox shell --print-env) && \
-       echo 'CREATE DATABASE IF NOT EXISTS todo_db;' | mysql -u root && \
-       cd todo_project && \
+      "eval $(devbox shell --print-env) && \
+       python3 -m venv $VENV_DIR && \
        . $VENV_DIR/bin/activate && \
+       python -m pip install -r requirements.txt --use-pep517 && \
+       cd todo_project && \
        python3 manage.py makemigrations && \
        python3 manage.py migrate && \
        python3 manage.py check && \
-       python3 manage.py test && \
-       devbox services stop",
+       python3 manage.py test",
     ]);
   const result = await ctr.stdout();
 
