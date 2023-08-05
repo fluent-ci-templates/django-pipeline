@@ -1,6 +1,10 @@
 import Client from "@dagger.io/dagger";
 import { withDevbox } from "https://deno.land/x/nix_installer_pipeline@v0.3.6/src/dagger/steps.ts";
 
+export enum Job {
+  djangoTests = "django-tests",
+}
+
 export const djangoTests = async (client: Client, src = ".") => {
   // get MariaDB base image
   const mariadb = client
@@ -21,7 +25,7 @@ export const djangoTests = async (client: Client, src = ".") => {
   const context = client.host().directory(src);
   const baseCtr = withDevbox(
     client
-      .pipeline("django-tests")
+      .pipeline(Job.djangoTests)
       .container()
       .from("alpine:latest")
       .withExec(["apk", "update"])
@@ -63,4 +67,14 @@ export const djangoTests = async (client: Client, src = ".") => {
   const result = await ctr.stdout();
 
   console.log(result);
+};
+
+export type JobExec = (client: Client, src?: string) => Promise<void>;
+
+export const runnableJobs: Record<Job, JobExec> = {
+  [Job.djangoTests]: djangoTests,
+};
+
+export const jobDescriptions: Record<Job, string> = {
+  [Job.djangoTests]: "Run django tests",
 };
