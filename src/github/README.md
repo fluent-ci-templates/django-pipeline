@@ -1,5 +1,9 @@
 # Github Actions
 
+[![deno module](https://shield.deno.dev/x/django_pipeline)](https://deno.land/x/django_pipeline)
+![deno compatibility](https://shield.deno.dev/deno/^1.34)
+[![](https://img.shields.io/codecov/c/gh/fluent-ci-templates/django-pipeline)](https://codecov.io/gh/fluent-ci-templates/django-pipeline)
+
 The following command will generate a `.github/workflows/tests.yml` file in your project:
 
 ```bash
