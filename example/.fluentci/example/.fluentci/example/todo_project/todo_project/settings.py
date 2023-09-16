@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -77,10 +79,10 @@ WSGI_APPLICATION = 'todo_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'todo_db',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
+        'NAME': os.getenv('MARIADB_DATABASE', 'todo_db'),
+        'USER': os.getenv('MARIADB_USER', 'user'),
+        'PASSWORD': os.getenv('MARIADB_PASSWORD', 'password'),
+        'HOST': os.getenv('MARIADB_HOST', 'localhost'),
         'PORT': '3306',
     }
 }
