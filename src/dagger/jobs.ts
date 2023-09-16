@@ -1,9 +1,11 @@
-import Client from "@dagger.io/dagger";
-import { withDevbox } from "https://deno.land/x/nix_installer_pipeline@v0.3.6/src/dagger/steps.ts";
+import Client from "@fluentci.io/dagger";
+import { withDevbox } from "https://nix.fluentci.io/v0.5.0/src/dagger/steps.ts";
 
 export enum Job {
   djangoTests = "django-tests",
 }
+
+export const exclude = [".git", ".devbox", ".fluentci"];
 
 export const djangoTests = async (client: Client, src = ".") => {
   // get MariaDB base image
@@ -35,9 +37,7 @@ export const djangoTests = async (client: Client, src = ".") => {
   );
 
   const ctr = baseCtr
-    .withDirectory("/app", context, {
-      exclude: [".git", ".devbox", ".fluentci"],
-    })
+    .withDirectory("/app", context, { exclude })
     .withWorkdir("/app")
     .withServiceBinding("db", mariadb)
     .withEnvVariable("MARIADB_USER", Deno.env.get("MARIADB_USER") || "user")
