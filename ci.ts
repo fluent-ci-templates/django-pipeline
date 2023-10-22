@@ -1,12 +1,3 @@
-const command = new Deno.Command(Deno.execPath(), {
-  args: [
-    "run",
-    "-A",
-    "--import-map=https://deno.land/x/django_pipeline/import_map.json",
-    "https://deno.land/x/django_pipeline/src/dagger/runner.ts",
-  ],
-});
+import { djangoTests } from "https://pkg.fluentci.io/django_pipeline@v0.6.0/mod.ts";
 
-const { stdout } = await command.output();
-
-console.log(new TextDecoder().decode(stdout));
+await djangoTests();
