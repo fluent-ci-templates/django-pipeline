@@ -40,7 +40,7 @@ dagger run fluentci .
 You can also use this pipeline programmatically:
 
 ```ts
-import { djangoTests } from "https://pkg.fluentci.io/django_pipeline@v0.6.1/mod.ts";
+import { djangoTests } from "https://pkg.fluentci.io/django_pipeline@v0.7.0/mod.ts";
 
 await djangoTests();
 
