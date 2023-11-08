@@ -28,11 +28,16 @@ export const djangoTests = async (src = ".") => {
     const baseCtr = client
       .pipeline(Job.djangoTests)
       .container()
-      .from("ghcr.io/fluentci-io/devbox:latest")
-      .withExec(["mv", "/nix/store", "/nix/store-orig"])
-      .withMountedCache("/nix/store", client.cacheVolume("nix-cache"))
-      .withExec(["sh", "-c", "cp -r /nix/store-orig/* /nix/store/"])
-      .withExec(["sh", "-c", "devbox version update"]);
+      .from("ghcr.io/fluentci-io/pkgx:latest")
+      .withExec(["apt-get", "update"])
+      .withExec([
+        "apt-get",
+        "install",
+        "-y",
+        "build-essential",
+        "libmysqlclient-dev",
+      ])
+      .withExec(["pkgx", "install", "pip", "python@3.11", "pkg-config"]);
 
     const ctr = baseCtr
       .withDirectory("/app", context, { exclude })
@@ -52,9 +57,7 @@ export const djangoTests = async (src = ".") => {
       .withExec([
         "sh",
         "-c",
-        "eval $(devbox shell --print-env) && \
-   python3 -m venv $VENV_DIR && \
-   . $VENV_DIR/bin/activate && \
+        "\
    python -m pip install -r requirements.txt --use-pep517 && \
    cd todo_project && \
    python3 manage.py makemigrations && \
