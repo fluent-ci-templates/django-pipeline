@@ -35,9 +35,13 @@ export const djangoTests = async (src = ".") => {
         "install",
         "-y",
         "build-essential",
-        "libmysqlclient-dev",
-      ])
-      .withExec(["pkgx", "install", "pip", "python@3.11", "pkg-config"]);
+        "python3-dev",
+        "default-libmysqlclient-dev",
+        "pkg-config",
+        "python3-pip",
+        "python3.11-venv",
+        "python3-full",
+      ]);
 
     const ctr = baseCtr
       .withDirectory("/app", context, { exclude })
@@ -54,20 +58,26 @@ export const djangoTests = async (src = ".") => {
         Deno.env.get("MARIADB_ROOT_PASSWORD") || "root"
       )
       .withEnvVariable("MARIADB_HOST", Deno.env.get("MARIADB_HOST") || "db")
+      .withEnvVariable("MYSQLCLIENT_CFLAGS", "-I/usr/include/mysql")
+      .withEnvVariable(
+        "MYSQLCLIENT_LDFLAGS",
+        "-L/usr/lib/x86_64-linux-gnu -lmysqlclient"
+      )
       .withExec([
         "sh",
         "-c",
         "\
-   python -m pip install -r requirements.txt --use-pep517 && \
+  python3 -m venv venv && \
+  chmod a+x venv/bin/activate && \
+  venv/bin/activate && \
+   pip install -r requirements.txt --use-pep517 && \
    cd todo_project && \
    python3 manage.py makemigrations && \
    python3 manage.py migrate && \
    python3 manage.py check && \
    python3 manage.py test",
       ]);
-    const result = await ctr.stdout();
-
-    console.log(result);
+    await ctr.stdout();
   });
   return "Done";
 };
