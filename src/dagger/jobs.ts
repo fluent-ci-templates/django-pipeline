@@ -64,12 +64,13 @@ export const djangoTests = async (src = ".") => {
         "-L/usr/lib/x86_64-linux-gnu -lmysqlclient"
       )
       .withExec([
-        "sh",
+        "bash",
         "-c",
         "\
   python3 -m venv venv && \
   chmod a+x venv/bin/activate && \
-  venv/bin/activate && \
+  ls -ltr venv/bin && \
+    . venv/bin/activate && \
    pip install -r requirements.txt --use-pep517 && \
    cd todo_project && \
    python3 manage.py makemigrations && \
