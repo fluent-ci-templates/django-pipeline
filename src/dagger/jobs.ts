@@ -1,4 +1,6 @@
-import Client, { connect } from "../../deps.ts";
+import { Client, Directory } from "../../sdk/client.gen.ts";
+import { connect } from "../../sdk/connect.ts";
+import { getDirectory } from "./lib.ts";
 
 export enum Job {
   djangoTests = "django-tests",
@@ -6,7 +8,16 @@ export enum Job {
 
 export const exclude = [".git", ".devbox", ".fluentci"];
 
-export const djangoTests = async (src = ".") => {
+/**
+ * @function
+ * @description Run django tests
+ * @param {string | Directory} src
+ * @returns {Promise<string>}
+ */
+export async function djangoTests(
+  src: Directory | string | undefined = "."
+): Promise<string> {
+  let result = "";
   await connect(async (client: Client) => {
     // get MariaDB base image
     const mariadb = client
@@ -22,9 +33,10 @@ export const djangoTests = async (src = ".") => {
         "MARIADB_ROOT_PASSWORD",
         Deno.env.get("MARIADB_ROOT_PASSWORD") || "root"
       )
-      .withExposedPort(3306);
+      .withExposedPort(3306)
+      .asService();
 
-    const context = client.host().directory(src);
+    const context = getDirectory(client, src);
     const baseCtr = client
       .pipeline(Job.djangoTests)
       .container()
@@ -78,10 +90,10 @@ export const djangoTests = async (src = ".") => {
    python3 manage.py check && \
    python3 manage.py test",
       ]);
-    await ctr.stdout();
+    result = await ctr.stdout();
   });
-  return "Done";
-};
+  return result;
+}
 
 export type JobExec = (src?: string) => Promise<string>;
 

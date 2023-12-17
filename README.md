@@ -29,11 +29,25 @@ Now you can run the pipeline with:
 fluentci run .
 ```
 
+## Dagger Module
+
+Use as a [Dagger](https://dagger.io) module:
+
+```bash
+dagger mod install github.com/fluent-ci-templates/django-pipeline@mod
+```
+
 ## Jobs
 
 | Job         | Description      |
 | ----------- | ---------------- |
 | djangoTests | Run your tests   |
+
+```typescript
+djangoTests(
+  src: Directory | string | undefined = "."
+): Promise<string>
+```
 
 ## Programmatic usage
 

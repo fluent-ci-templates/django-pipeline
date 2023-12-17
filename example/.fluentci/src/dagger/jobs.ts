@@ -1,4 +1,6 @@
-import Client, { connect } from "../../deps.ts";
+import { Client, Directory } from "../../sdk/client.gen.ts";
+import { connect } from "../../sdk/connect.ts";
+import { getDirectory } from "./lib.ts";
 
 export enum Job {
   djangoTests = "django-tests",
@@ -6,7 +8,16 @@ export enum Job {
 
 export const exclude = [".git", ".devbox", ".fluentci"];
 
-export const djangoTests = async (src = ".") => {
+/**
+ * @function
+ * @description Run django tests
+ * @param {string | Directory} src
+ * @returns {Promise<string>}
+ */
+export async function djangoTests(
+  src: Directory | string | undefined = "."
+): Promise<string> {
+  let result = "";
   await connect(async (client: Client) => {
     // get MariaDB base image
     const mariadb = client
@@ -22,17 +33,27 @@ export const djangoTests = async (src = ".") => {
         "MARIADB_ROOT_PASSWORD",
         Deno.env.get("MARIADB_ROOT_PASSWORD") || "root"
       )
-      .withExposedPort(3306);
+      .withExposedPort(3306)
+      .asService();
 
-    const context = client.host().directory(src);
+    const context = getDirectory(client, src);
     const baseCtr = client
       .pipeline(Job.djangoTests)
       .container()
-      .from("ghcr.io/fluentci-io/devbox:latest")
-      .withExec(["mv", "/nix/store", "/nix/store-orig"])
-      .withMountedCache("/nix/store", client.cacheVolume("nix-cache"))
-      .withExec(["sh", "-c", "cp -r /nix/store-orig/* /nix/store/"])
-      .withExec(["sh", "-c", "devbox version update"]);
+      .from("ghcr.io/fluentci-io/pkgx:latest")
+      .withExec(["apt-get", "update"])
+      .withExec([
+        "apt-get",
+        "install",
+        "-y",
+        "build-essential",
+        "python3-dev",
+        "default-libmysqlclient-dev",
+        "pkg-config",
+        "python3-pip",
+        "python3.11-venv",
+        "python3-full",
+      ]);
 
     const ctr = baseCtr
       .withDirectory("/app", context, { exclude })
@@ -49,27 +70,32 @@ export const djangoTests = async (src = ".") => {
         Deno.env.get("MARIADB_ROOT_PASSWORD") || "root"
       )
       .withEnvVariable("MARIADB_HOST", Deno.env.get("MARIADB_HOST") || "db")
+      .withEnvVariable("MYSQLCLIENT_CFLAGS", "-I/usr/include/mysql")
+      .withEnvVariable(
+        "MYSQLCLIENT_LDFLAGS",
+        "-L/usr/lib/x86_64-linux-gnu -lmysqlclient"
+      )
       .withExec([
-        "sh",
+        "bash",
         "-c",
-        "eval $(devbox shell --print-env) && \
-   python3 -m venv $VENV_DIR && \
-   . $VENV_DIR/bin/activate && \
-   python -m pip install -r requirements.txt --use-pep517 && \
+        "\
+  python3 -m venv venv && \
+  chmod a+x venv/bin/activate && \
+  ls -ltr venv/bin && \
+    . venv/bin/activate && \
+   pip install -r requirements.txt --use-pep517 && \
    cd todo_project && \
    python3 manage.py makemigrations && \
    python3 manage.py migrate && \
    python3 manage.py check && \
    python3 manage.py test",
       ]);
-    const result = await ctr.stdout();
-
-    console.log(result);
+    result = await ctr.stdout();
   });
-  return "Done";
-};
+  return result;
+}
 
-export type JobExec = (src?: string) => Promise<string>;
+export type JobExec = (src?: Directory | string) => Promise<string>;
 
 export const runnableJobs: Record<Job, JobExec> = {
   [Job.djangoTests]: djangoTests,
