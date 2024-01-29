@@ -54,7 +54,7 @@ djangoTests(
 You can also use this pipeline programmatically:
 
 ```ts
-import { djangoTests } from "https://pkg.fluentci.io/django_pipeline@v0.8.0/mod.ts";
+import { djangoTests } from "https://pkg.fluentci.io/django_pipeline@v0.8.1/mod.ts";
 
 await djangoTests();
 
