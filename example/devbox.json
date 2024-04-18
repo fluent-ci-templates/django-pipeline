@@ -1,7 +1,7 @@
 {
   "packages": [
-    "python@3.11",
-    "python311Packages.pip@latest",
+    "python@3.12",
+    "python312Packages.pip@latest",
     "mysql80@latest",
     "pkg-config@latest",
     "libmysqlclient@latest"
@@ -14,12 +14,10 @@
     ],
     "scripts": {
       "test": [
-        "devbox services start",
         "python todo_project/manage.py makemigrations",
         "python todo_project/manage.py migrate",
         "python todo_project/manage.py check",
-        "python todo_project/manage.py test",
-        "devbox services stop"
+        "python todo_project/manage.py test"
       ]
     }
   }
