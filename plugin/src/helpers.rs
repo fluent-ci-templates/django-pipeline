@@ -7,7 +7,6 @@ pub fn setup_devbox() -> Result<(), Error> {
     "packages": [
       "python@3.12",
       "python312Packages.pip@latest",
-      "mysql80@latest",
       "pkg-config@latest",
       "libmysqlclient@latest"
     ],
