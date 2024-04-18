@@ -33,7 +33,7 @@ export async function djangoTests(
     .withExposedPort(3306)
     .asService();
 
-  const context = await getDirectory(dag, src);
+  const context = await getDirectory(src);
   const baseCtr = dag
     .pipeline(Job.djangoTests)
     .container()

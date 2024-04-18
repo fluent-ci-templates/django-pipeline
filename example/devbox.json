@@ -14,7 +14,12 @@
     ],
     "scripts": {
       "test": [
-        "echo \"Error: no test specified\" && exit 1"
+        "devbox services start",
+        "python todo_project/manage.py makemigrations",
+        "python todo_project/manage.py migrate",
+        "python todo_project/manage.py check",
+        "python todo_project/manage.py test",
+        "devbox services stop"
       ]
     }
   }
