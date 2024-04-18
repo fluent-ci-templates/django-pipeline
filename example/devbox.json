@@ -1,10 +1,14 @@
 {
-  "packages": [
-    "python@3.12",
-    "python312Packages.pip@latest",
-    "pkg-config@latest",
-    "libmysqlclient@latest"
-  ],
+  "packages": {
+    "python": "3.12",
+    "python312Packages.pip": "latest",
+    "mysql80": {
+      "version": "latest",
+      "disable_plugin": true
+    },
+    "pkg-config": "latest",
+    "libmysqlclient": "latest"
+  },
   "shell": {
     "init_hook": [
       "echo 'Welcome to devbox!' > /dev/null",
