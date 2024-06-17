@@ -8,15 +8,23 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          # The MySQL docker container requires these environment variables to be set
+          # so we can create and migrate the test database.
+          # See: https://hub.docker.com/_/mysql
+          MYSQL_DATABASE: todo
+          MYSQL_ROOT_PASSWORD: testrootpass
+        ports:
+          # Opens port 3306 on service container and host
+          # https://docs.github.com/en/actions/using-containerized-services/about-service-containers
+          - 3306:3306
+          # Before continuing, verify the mysql container is reachable from the ubuntu host
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v3
-      - name: Shutdown Ubuntu MySQL (SUDO)
-        run: sudo service mysql stop
-      - uses: getong/mariadb-action@v1.1
-        with:
-          mysql database: "todo"
-          mysql user: "user"
-          mysql password: "password"
       - name: Setup Fluent CI CLI
         uses: fluentci-io/setup-fluentci@v5
         with:
@@ -27,8 +35,8 @@ jobs:
           working-directory: example
         env:
           MARIADB_DATABASE: todo
-          MARIADB_USER: user
-          MARIADB_PASSWORD: password
+          MARIADB_USER: root
+          MARIADB_PASSWORD: testrootpass
           MARIADB_ROOT_PASSWORD: root
       - name: Run Dagger Pipelines
         run: dagger run deno run -A ../src/dagger/runner.ts
