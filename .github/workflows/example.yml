@@ -38,6 +38,7 @@ jobs:
           MARIADB_USER: root
           MARIADB_PASSWORD: testrootpass
           MARIADB_ROOT_PASSWORD: root
+          MARIADB_HOST: 127.0.0.1
       - name: Run Dagger Pipelines
         run: dagger run deno run -A ../src/dagger/runner.ts
         working-directory: example

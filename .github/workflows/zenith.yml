@@ -18,5 +18,5 @@ jobs:
           dagger version
       - name: Run Dagger Pipelines
         run: |
-          dagger call djangoTests --src .
+          dagger call django-tests --src .
         working-directory: example
