@@ -1,5 +1,5 @@
-import { Directory, dag } from "../../sdk/client.gen.ts";
-import { getDirectory } from "./lib.ts";
+import { type Directory, dag } from "../sdk/client.gen.ts";
+import { getDirectory } from "./helpers.ts";
 
 export enum Job {
   djangoTests = "django-tests",

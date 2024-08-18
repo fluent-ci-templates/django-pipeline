@@ -1,5 +1,5 @@
-import { Directory, dag } from "../../sdk/client.gen.ts";
-import { getDirectory } from "./lib.ts";
+import { type Directory, dag } from "../sdk/client.gen.ts";
+import { getDirectory } from "./helpers.ts";
 
 export enum Job {
   djangoTests = "django-tests",
@@ -33,7 +33,7 @@ export async function djangoTests(
     .withExposedPort(3306)
     .asService();
 
-  const context = await getDirectory(dag, src);
+  const context = await getDirectory(src);
   const baseCtr = dag
     .pipeline(Job.djangoTests)
     .container()
